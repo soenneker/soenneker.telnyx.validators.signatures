@@ -1,9 +1,10 @@
 [![](https://img.shields.io/nuget/v/soenneker.telnyx.validators.signatures.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.telnyx.validators.signatures/)
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.telnyx.validators.signatures/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.telnyx.validators.signatures/actions/workflows/publish-package.yml)
+[![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.telnyx.validators.signatures/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/soenneker.telnyx.validators.signatures/actions/workflows/codeql.yml)
 [![](https://img.shields.io/nuget/dt/soenneker.telnyx.validators.signatures.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.telnyx.validators.signatures/)
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Telnyx.Validators.Signatures
-### Ed25519 signature validation for Telnyx webhooks
+Validates Telnyx webhook signatures and rejects stale timestamps that could be replayed.
 
 ## Installation
 
@@ -42,7 +43,7 @@ bool valid = await validator.Validate(payload, signature, timestamp, cancellatio
 ```
 
 The request body must be validated before it is parsed and reserialized. Telnyx signs the exact
-`{timestamp}|{payload}` content. The timestamp is included in signature verification but is not checked for freshness.
+`{timestamp}|{payload}` content. Timestamps more than five minutes in the past or future are rejected.
 
 If verification fails, the validator conditionally refreshes the cached public key and retries once. Conditional refreshes
 are single-flight and rate-limited so invalid traffic cannot cause an unbounded number of Telnyx API requests.

@@ -6,7 +6,7 @@ using Soenneker.Telnyx.Validators.Signatures.Abstract;
 namespace Soenneker.Telnyx.Validators.Signatures.Registrars;
 
 /// <summary>
-/// Signature validation for Telnyx messaging
+/// Registers Telnyx webhook-signature validation.
 /// </summary>
 public static class TelnyxSignatureValidatorRegistrar
 {

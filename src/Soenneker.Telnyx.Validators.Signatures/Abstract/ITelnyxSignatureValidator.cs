@@ -13,7 +13,7 @@ public interface ITelnyxSignatureValidator
     /// </summary>
     /// <remarks>
     /// <paramref name="payload"/> must be the raw request body. Parsing and reserializing the body before validation can change
-    /// its bytes and invalidate an otherwise valid signature.
+    /// its bytes and invalidate an otherwise valid signature. Timestamps outside a five-minute tolerance are rejected.
     /// </remarks>
     /// <param name="payload">The raw webhook request body.</param>
     /// <param name="signature">The value of the <c>telnyx-signature-ed25519</c> header.</param>

@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <Description>Signature validation for Telnyx messaging</Description>
+        <Description>Validates Telnyx webhook signatures and rejects stale timestamps that could be replayed.</Description>
         <Version Condition="'$(BUILD_VERSION)' == ''">4.0.0</Version>
         <Version Condition="'$(BUILD_VERSION)' != ''">$(BUILD_VERSION)</Version>
         <AssemblyName>Soenneker.Telnyx.Validators.Signatures</AssemblyName>

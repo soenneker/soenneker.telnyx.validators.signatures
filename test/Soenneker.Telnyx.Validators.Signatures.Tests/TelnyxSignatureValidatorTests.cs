@@ -79,7 +79,7 @@ public sealed class TelnyxSignatureValidatorTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Validate_should_accept_a_valid_signature_regardless_of_timestamp_age()
+    public async Task Validate_should_reject_a_stale_valid_signature()
     {
         const string payload = "{}";
         string timestamp = DateTimeOffset.UtcNow.AddMinutes(-6).ToUnixTimeSeconds().ToString();
@@ -91,8 +91,25 @@ public sealed class TelnyxSignatureValidatorTests : HostedUnitTest
 
         bool valid = await validator.Validate(payload, signature, timestamp);
 
-        await Assert.That(valid).IsTrue();
-        await Assert.That(publicKeys.GetCount).IsEqualTo(1);
+        await Assert.That(valid).IsFalse();
+        await Assert.That(publicKeys.GetCount).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Validate_should_reject_a_future_valid_signature()
+    {
+        const string payload = "{}";
+        string timestamp = DateTimeOffset.UtcNow.AddMinutes(6).ToUnixTimeSeconds().ToString();
+        var privateKey = new Ed25519PrivateKeyParameters(CreatePrivateKeySeed(), 0);
+        string publicKey = Convert.ToBase64String(privateKey.GeneratePublicKey().GetEncoded());
+        string signature = Convert.ToBase64String(Sign(privateKey, $"{timestamp}|{payload}"));
+        var publicKeys = new TestPublicKeysUtil(publicKey);
+        var validator = new TelnyxSignatureValidator(publicKeys, NullLogger<TelnyxSignatureValidator>.Instance);
+
+        bool valid = await validator.Validate(payload, signature, timestamp);
+
+        await Assert.That(valid).IsFalse();
+        await Assert.That(publicKeys.GetCount).IsEqualTo(0);
     }
 
     [Test]

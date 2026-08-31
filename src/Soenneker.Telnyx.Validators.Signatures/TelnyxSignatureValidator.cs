@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Telnyx.Validators.Signatures;
 
-/// <inheritdoc cref="ITelnyxSignatureValidator"/>
 public sealed class TelnyxSignatureValidator : ITelnyxSignatureValidator
 {
+    private const long _timestampToleranceSeconds = 300;
+
     private readonly ITelnyxPublicKeysUtil _publicKeysUtil;
     private readonly ILogger<TelnyxSignatureValidator> _logger;
 
@@ -25,6 +26,17 @@ public sealed class TelnyxSignatureValidator : ITelnyxSignatureValidator
     {
         if (string.IsNullOrEmpty(payload) || string.IsNullOrWhiteSpace(signature) || string.IsNullOrWhiteSpace(timestamp))
             return false;
+
+        if (!long.TryParse(timestamp, out long timestampSeconds))
+            return false;
+
+        long currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        if (timestampSeconds < currentTimestamp - _timestampToleranceSeconds || timestampSeconds > currentTimestamp + _timestampToleranceSeconds)
+        {
+            _logger.LogDebug("Rejected a Telnyx webhook timestamp outside the allowed tolerance");
+            return false;
+        }
 
         string publicKey;
 
