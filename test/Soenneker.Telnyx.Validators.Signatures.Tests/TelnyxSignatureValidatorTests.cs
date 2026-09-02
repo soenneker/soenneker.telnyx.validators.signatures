@@ -28,7 +28,7 @@ public sealed class TelnyxSignatureValidatorTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Validate_should_accept_a_current_valid_signature()
+    public async Task Validate_should_accept_a_current_valid_signature(CancellationToken cancellationToken)
     {
         const string payload = "{\"data\":{\"id\":\"event-id\"}}";
         string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
@@ -38,14 +38,14 @@ public sealed class TelnyxSignatureValidatorTests : HostedUnitTest
         var publicKeys = new TestPublicKeysUtil(publicKey);
         var validator = new TelnyxSignatureValidator(publicKeys, NullLogger<TelnyxSignatureValidator>.Instance);
 
-        bool valid = await validator.Validate(payload, signature, timestamp);
+        bool valid = await validator.Validate(payload, signature, timestamp, cancellationToken: cancellationToken);
 
         await Assert.That(valid).IsTrue();
         await Assert.That(publicKeys.GetCount).IsEqualTo(1);
     }
 
     [Test]
-    public async Task Validate_should_reject_a_tampered_payload()
+    public async Task Validate_should_reject_a_tampered_payload(CancellationToken cancellationToken)
     {
         const string payload = "{\"data\":{\"id\":\"event-id\"}}";
         string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
@@ -54,13 +54,13 @@ public sealed class TelnyxSignatureValidatorTests : HostedUnitTest
         string signature = Convert.ToBase64String(Sign(privateKey, $"{timestamp}|{payload}"));
         var validator = new TelnyxSignatureValidator(new TestPublicKeysUtil(publicKey), NullLogger<TelnyxSignatureValidator>.Instance);
 
-        bool valid = await validator.Validate($"{payload} ", signature, timestamp);
+        bool valid = await validator.Validate($"{payload} ", signature, timestamp, cancellationToken: cancellationToken);
 
         await Assert.That(valid).IsFalse();
     }
 
     [Test]
-    public async Task Validate_should_refresh_and_retry_after_key_rotation()
+    public async Task Validate_should_refresh_and_retry_after_key_rotation(CancellationToken cancellationToken)
     {
         const string payload = "{\"data\":{\"id\":\"rotated-key\"}}";
         string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
@@ -72,14 +72,14 @@ public sealed class TelnyxSignatureValidatorTests : HostedUnitTest
         var publicKeys = new TestPublicKeysUtil(oldPublicKey, newPublicKey);
         var validator = new TelnyxSignatureValidator(publicKeys, NullLogger<TelnyxSignatureValidator>.Instance);
 
-        bool valid = await validator.Validate(payload, signature, timestamp);
+        bool valid = await validator.Validate(payload, signature, timestamp, cancellationToken: cancellationToken);
 
         await Assert.That(valid).IsTrue();
         await Assert.That(publicKeys.RefreshCount).IsEqualTo(1);
     }
 
     [Test]
-    public async Task Validate_should_reject_a_stale_valid_signature()
+    public async Task Validate_should_reject_a_stale_valid_signature(CancellationToken cancellationToken)
     {
         const string payload = "{}";
         string timestamp = DateTimeOffset.UtcNow.AddMinutes(-6).ToUnixTimeSeconds().ToString();
@@ -89,14 +89,14 @@ public sealed class TelnyxSignatureValidatorTests : HostedUnitTest
         var publicKeys = new TestPublicKeysUtil(publicKey);
         var validator = new TelnyxSignatureValidator(publicKeys, NullLogger<TelnyxSignatureValidator>.Instance);
 
-        bool valid = await validator.Validate(payload, signature, timestamp);
+        bool valid = await validator.Validate(payload, signature, timestamp, cancellationToken: cancellationToken);
 
         await Assert.That(valid).IsFalse();
         await Assert.That(publicKeys.GetCount).IsEqualTo(0);
     }
 
     [Test]
-    public async Task Validate_should_reject_a_future_valid_signature()
+    public async Task Validate_should_reject_a_future_valid_signature(CancellationToken cancellationToken)
     {
         const string payload = "{}";
         string timestamp = DateTimeOffset.UtcNow.AddMinutes(6).ToUnixTimeSeconds().ToString();
@@ -106,20 +106,20 @@ public sealed class TelnyxSignatureValidatorTests : HostedUnitTest
         var publicKeys = new TestPublicKeysUtil(publicKey);
         var validator = new TelnyxSignatureValidator(publicKeys, NullLogger<TelnyxSignatureValidator>.Instance);
 
-        bool valid = await validator.Validate(payload, signature, timestamp);
+        bool valid = await validator.Validate(payload, signature, timestamp, cancellationToken: cancellationToken);
 
         await Assert.That(valid).IsFalse();
         await Assert.That(publicKeys.GetCount).IsEqualTo(0);
     }
 
     [Test]
-    public async Task Validate_should_reject_malformed_headers()
+    public async Task Validate_should_reject_malformed_headers(CancellationToken cancellationToken)
     {
         var publicKeys = new TestPublicKeysUtil(Convert.ToBase64String(new byte[32]));
         var validator = new TelnyxSignatureValidator(publicKeys, NullLogger<TelnyxSignatureValidator>.Instance);
 
-        bool missingTimestamp = await validator.Validate("{}", Convert.ToBase64String(new byte[64]), "");
-        bool invalidSignature = await validator.Validate("{}", "not-base64", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+        bool missingTimestamp = await validator.Validate("{}", Convert.ToBase64String(new byte[64]), "", cancellationToken: cancellationToken);
+        bool invalidSignature = await validator.Validate("{}", "not-base64", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), cancellationToken: cancellationToken);
 
         await Assert.That(missingTimestamp).IsFalse();
         await Assert.That(invalidSignature).IsFalse();
