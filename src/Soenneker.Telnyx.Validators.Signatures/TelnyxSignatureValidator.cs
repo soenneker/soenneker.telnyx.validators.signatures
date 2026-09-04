@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Telnyx.Validators.Signatures;
 
+/// <inheritdoc cref="ITelnyxSignatureValidator" />
 public sealed class TelnyxSignatureValidator : ITelnyxSignatureValidator
 {
     private const long _timestampToleranceSeconds = 300;
