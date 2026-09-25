@@ -44,7 +44,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Cryptography.Ed25519" Version="4.0.141" />
-        <PackageReference Include="Soenneker.Telnyx.PublicKeys" Version="4.0.68" />
+        <PackageReference Include="Soenneker.Cryptography.Ed25519" Version="4.0.144" />
+        <PackageReference Include="Soenneker.Telnyx.PublicKeys" Version="4.0.69" />
     </ItemGroup>
 </Project>
