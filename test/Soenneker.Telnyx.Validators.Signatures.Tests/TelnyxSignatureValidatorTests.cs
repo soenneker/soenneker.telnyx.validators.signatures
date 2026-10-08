@@ -22,7 +22,7 @@ public sealed class TelnyxSignatureValidatorTests : HostedUnitTest
     }
 
     [Test]
-    public async ValueTask Default()
+    public async ValueTask Default(CancellationToken cancellationToken)
     {
         await Assert.That(_util).IsNotNull();
     }
